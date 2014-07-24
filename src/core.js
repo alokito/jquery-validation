@@ -891,11 +891,11 @@ $.extend( $.validator, {
 			}
 		},
 
-		previousValue: function( element ) {
+		previousValue: function( element, defaultMessage ) {
 			return $.data( element, "previousValue" ) || $.data( element, "previousValue", {
 				old: null,
 				valid: true,
-				message: this.defaultMessage( element, "remote" )
+				message: defaultMessage || this.defaultMessage( element, "remote" )
 			});
 		}
 
@@ -1232,7 +1232,7 @@ $.extend( $.validator, {
 				return "dependency-mismatch";
 			}
 
-			var previous = this.previousValue( element ),
+			var previous = this.previousValue( element, param.defaultMessage ),
 				validator, data;
 
 			if (!this.settings.messages[ element.name ] ) {
@@ -1273,7 +1273,7 @@ $.extend( $.validator, {
 						validator.showErrors();
 					} else {
 						errors = {};
-						message = response || validator.defaultMessage( element, "remote" );
+						message = response || param.defaultMessage || validator.defaultMessage( element, "remote" );
 						errors[ element.name ] = previous.message = $.isFunction( message ) ? message( value ) : message;
 						validator.invalid[ element.name ] = true;
 						validator.showErrors( errors );
