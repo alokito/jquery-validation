@@ -400,6 +400,44 @@ asyncTest("remote", function() {
 	strictEqual( v.element(e), true, "still invalid, because remote validation must block until it returns; dependency-mismatch considered as valid though" );
 });
 
+asyncTest("remote, invocation-specific default message", function() {
+	expect(3);
+	var methods = $.extend( {}, $.validator.methods ),
+	  messages = $.extend( {}, $.validator.messages ), e, v;
+
+  $.validator.addMethod("usernameNotInUse", function(value, element, params) {
+	  return this.optional(element) || $.validator.methods.remote.call(this, value, element, $.extend({
+		  url: "users.php",
+			defaultMessage: function(x) { return x + " in use";}
+		}, params));
+	});
+
+	e = $("#username");
+	v = $("#userForm").validate({
+			rules: {
+				username: {
+					usernameNotInUse: true
+				}
+			},
+			submitHandler: function() {
+				ok( false, "submitHandler may never be called when validating only elements");
+			}
+		});
+
+	$(document).ajaxStop(function() {
+		$(document).unbind("ajaxStop");
+	  equal( 1, v.size(), "There must be one error" );
+		equal( "Peter in use", v.errorList[0].message );
+    strictEqual( e.hasClass("pending"), false, "not pending since ajax call complete");
+		$.validator.methods = methods;
+		$.validator.messages = messages;
+		start();
+	});
+	e.val("Peter");
+	// this fires off the validation:
+	v.element(e);
+});
+
 asyncTest("remote, pending class added to element while call outstanding", function() {
 	expect(3);
 	var e = $("#username"),
